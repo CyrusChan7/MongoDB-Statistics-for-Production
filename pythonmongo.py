@@ -1,5 +1,5 @@
 import pymongo
-import mongo_collection_strings
+from mongo_collection_strings import cadc_server_one, cadc_server_two, cadc_server_three, cadc_server_four, cadc_server_five
 import os
 
 
@@ -21,32 +21,35 @@ collections_of_interest = read_file_contents("collections_to_check.txt")
 #print(collections_of_interest)
 
 
+servers = [cadc_server_one, cadc_server_two, cadc_server_three, cadc_server_four, cadc_server_five]
 
-connection = pymongo.MongoClient(mongo_collection_strings.cadc_server_three)
+for server in servers:
+    connection = pymongo.MongoClient(server)
 
-db_names = connection.list_database_names()
-#print(db_names)
+    db_names = connection.list_database_names()
+    #print(db_names)
 
+    for dbname in db_names:
+        db = connection[dbname]
+        collection_names = db.list_collection_names()
+        #print(collection_names)        # Collection names are in lists - for loop required 
 
-for dbname in db_names:
-    db = connection[dbname]
-    collection_names = db.list_collection_names()
-    #print(collection_names)        # Collection names are in lists - for loop required 
+        for i in range(len(collection_names)):
+            #print(collection_names[i])
 
-    for i in range(len(collection_names)):
-        #print(collection_names[i])
+            if collection_names[i] in collections_of_interest:
+                collection_stats = db.command("collstats", collection_names[i])
+                #print(collection_stats)
 
-
-        if collection_names[i] in collections_of_interest:
-            collection_stats = db.command("collstats", collection_names[i])
-            #print(collection_stats)
-
-            for key, value in collection_stats.items():
-                if key == "count":
+                print(f"\n{collection_names[i]}:")
+                for key, value in collection_stats.items():
                     #print(key, value)
-                    print(f"The count for {collection_names[i]} collection is {value:,}")
-
-        
+                    if key == "count":
+                        print(f"{value:,} document(s)")
+                    elif key == "size":
+                        print(f"size: {value:,} B")
+                    elif key == "storageSize":
+                        print(f"storageSize: {value:,} B")
 
 
 connection.close()
