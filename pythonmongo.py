@@ -41,15 +41,19 @@ for server in servers:
                 collection_stats = db.command("collstats", collection_names[i])
                 #print(collection_stats)
 
-                print(f"\n{collection_names[i]}:")
+                print(f"\n-\n{collection_names[i]}:")
                 for key, value in collection_stats.items():
                     #print(key, value)
                     if key == "count":
                         print(f"{value:,} document(s)")
                     elif key == "size":
-                        print(f"size: {value:,} B")
+                        sizeBytes = value
+                        sizeMB = round(value / (1024 * 1024), 1)
+                        print(f"size: {value:,} B ({sizeMB:,} MB)")
                     elif key == "storageSize":
-                        print(f"storageSize: {value:,} B")
+                        storageSizeBytes = value
+                        storageSizeMB = round(value / (1024 * 1024), 1)
+                        print(f"storageSize: {value:,} B ({storageSizeMB} MB)")
 
 
 connection.close()
